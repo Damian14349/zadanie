@@ -1,0 +1,42 @@
+version: '3'
+services:
+  wordpress:
+    build:
+      context: .
+      dockerfile: Dockerfile.wordpress
+    ports:
+      - "127.0.0.1:8080:80"
+    depends_on:
+      - db
+    environment:
+      WORDPRESS_DB_HOST: db
+      WORDPRESS_DB_USER: wordpress
+      WORDPRESS_DB_PASSWORD: wordpress
+      WORDPRESS_DB_NAME: wordpress
+    networks:
+      - custom_network
+
+  db:
+    build:
+      context: .
+      dockerfile: Dockerfile.mariadb
+    environment:
+      MYSQL_ROOT_PASSWORD: wordpress
+      MYSQL_DATABASE: wordpress
+    networks:
+      - custom_network
+
+  nginx:
+    build:
+      context: .
+      dockerfile: Dockerfile.nginx
+    ports:
+      - "127.0.0.1:443:443"
+    depends_on:
+      - wordpress
+    networks:
+      - custom_network
+
+networks:
+  custom_network:
+    driver: bridge

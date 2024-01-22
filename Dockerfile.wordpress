@@ -1,0 +1,40 @@
+# Use the base Ubuntu image
+FROM ubuntu
+
+ARG DEBIAN_FRONTEND=noninteractive
+
+# Install necessary dependencies and packages for WordPress
+RUN apt-get update && apt-get install -y \
+    apache2 \
+    php \
+    php-fpm \
+    php-mysql \
+    nginx \
+    curl \
+    && apt-get clean
+
+RUN rm /var/www/html/*
+
+RUN a2enmod rewrite && \
+    service apache2 restart
+
+COPY ./wordpress/wp-config.php /var/www/html
+# Download and install WordPress
+RUN curl -o wordpress.tar.gz -fSL "https://wordpress.org/latest.tar.gz" \
+    && tar -xzf wordpress.tar.gz -C /var/www/html --strip-components=1 \
+    && rm wordpress.tar.gz \
+    && chown -R www-data:www-data /var/www/html
+
+# Copy your WordPress files into the container (assuming your WordPress files are in a directory called 'wordpress')
+# COPY ./wordpress/.htaccess /var/www/html/.htaccess
+# COPY ./wordpress/wp-config.php /var/www/html
+COPY ./wordpress/wordpress.conf /etc/apache2/sites-available/000-default.conf
+COPY ./wordpress/dir.conf /etc/apache2/mods-available/dir.conf
+
+RUN service apache2 restart
+
+# Expose port 80 for Nginx
+# EXPOSE 80
+
+# Start Nginx and PHP-FPM
+CMD ["nginx", "-g", "daemon off;"]

@@ -1,0 +1,16 @@
+# Use the base Ubuntu image
+FROM ubuntu
+
+# Install MariaDB
+RUN apt-get update && apt-get install -y \
+    mariadb-server \
+    && apt-get clean
+
+# Copy your MariaDB initialization script into the container
+COPY ./init.sql /docker-entrypoint-initdb.d
+
+# Expose port 3306 for MariaDB
+EXPOSE 3306
+
+# Start MariaDB
+CMD ["mysqld"]
